@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef extern struct arena_t arena_t;
+typedef struct arena_t arena_t;
+
+struct arena_t;
 
 typedef struct wgc_allocator_t {
   arena_t* alloc_ctx;

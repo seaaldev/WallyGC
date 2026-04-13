@@ -26,7 +26,7 @@ static arena_t* wgc_arena_new();
 #define ALIGNMENT(a) \
 (assert((a) % sizeof(uintptr_t) == 0))
 
-extern struct arena_t {
+struct arena_t {
   size_t      size;
   size_t allocated;
 };
