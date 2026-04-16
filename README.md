@@ -16,4 +16,4 @@ Meaning it might be some time before it is completely finished. As I have a few 
 Are you excited to someday see the finished product? Don't be! this project will only ever be relevant to myself.
 But I will always love and accept feedback/critique.
 
-So if you have something to say, please make an **Issue* or contact me on discord at **seaaldev**
+So if you have something to say, please make an **Issue** or contact me on discord at **seaaldev**
