@@ -1,5 +1,5 @@
 CC = gcc
-LIB_CFLAGS = -Wall -Wextra -Werror -pedantic -c
+LIB_CFLAGS = -Wall -Wextra -Werror -pedantic -g -c
 LINKS = -lwgc -L./lib/
 
 lib : wvm.o warena.o wmalloc.o  
@@ -16,15 +16,16 @@ wmalloc.o : folders ./src/wmalloc.c ./src/warena.h
 
 # ----- TEST SECTION ------
 
-testrunners = test-warena-api.o
+tests: tester.o test-warena-api.o wvm.o warena.o wmalloc.o
+	${CC} -Wall -Werror -Wextra -pedantic -g \
+	./build/tests/tester.o ./build/tests/test-warena-api.o ./build/wvm.o ./build/warena.o \
+	-o ./build/tests/tester
 
-tests: ${testrunners}
-	${CC} -Wall -Werror -Wextra -pedantic ./build/tests/test-warena-api.o \
-		-o ./build/tests/testrun 
+tester.o : folders
+	${CC} ${LIB_CFLAGS} ./tests/tester.c -o ./build/tests/tester.o
 
-test-warena-api.o : folders wvm.o warena.o
-	${CC} ${LIB_CFLAGS} ./tests/test-warena-api.c ./build/wvm.o ./build/warena.o -o ./build/tests/test-warena-api.o
-	./build/tests/test-warena-api.o
+test-warena-api.o : folders 
+	${CC} ${LIB_CFLAGS} ./tests/test-warena-api.c -o ./build/tests/test-warena-api.o
 
 folders : 
 	mkdir -p ./build ./build/tests ./lib

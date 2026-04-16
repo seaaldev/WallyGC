@@ -4,9 +4,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct arena_t arena_t;
+typedef struct wgc_arena_t arena_t;
 
-struct arena_t;
+struct wgc_arena_t {
+  size_t      size;
+  size_t allocated;
+};
 
 typedef struct wgc_allocator_t {
   arena_t* alloc_ctx;

@@ -8,7 +8,7 @@
 
 extern void* 
 wgc_virtual_map(void* addr, size_t length) {
-  void* map_ptr = mmap(addr, length, PROT_READ, MAP_ANONYMOUS, -1, 0);
+  void* map_ptr = mmap(addr, length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
   if (map_ptr == MAP_FAILED) {
     handle_error("mmap");
@@ -19,5 +19,7 @@ wgc_virtual_map(void* addr, size_t length) {
 
 extern int
 wgc_virtual_unmap(void* addr, size_t length) {
-  return (munmap(addr, length));
+  if ((munmap(addr, length)) == -1)
+    handle_error("munmap");
+  return 1;
 }

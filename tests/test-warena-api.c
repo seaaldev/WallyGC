@@ -13,40 +13,58 @@ static int test_alloc_creation() {
   return (mockalloc->alloc_ctx->size == (4 * PAGE_SIZE));
 }
 
-/* Im silly so I cannot think of a way to
+/* 
+ * Im silly so I cannot think of a way to
  * meassure an allocations success other
  * than it not segfaulting
  */
 static int test_allocation() {
-  alloc_t* mockalloc = new_allocator(4);
+  alloc_t* allocator = new_allocator(4);
 
-  size_t size = mockalloc->alloc_ctx->size - sizeof(*mockalloc)
-                - sizeof(arena_t);
+  size_t used_mem = allocator->alloc_ctx->allocated;
+  size_t aval_mem = allocator->alloc_ctx->size - used_mem;
   
-  char* long_string = mockalloc->alloc(mockalloc->alloc_ctx, size);
-  memset(long_string, 67, (3 * PAGE_SIZE) - 1);
-  long_string[3*PAGE_SIZE] = '\0';
+  char* test = allocator->alloc(allocator->alloc_ctx, aval_mem);
+  memset(test, 101, aval_mem - 1);
+  long_string[aval_mem] = '\0';
+  
+  allocator->destroy(allocator->alloc_ctx);
 
   return 1;
 }
 
+/*
+ * Same idea here! No SEGFAULT No STRESS
+ */ 
+
+static int test_multi_allocator() {
+  size_t page_num  = 12;
+  size_t alctr_num =  8;
+  
+  for (size_t i = 0; i < alctr_num; i++) {
+    alloc_t* allocator = new_allocator(page_num);
+
+    size_t used_mem = allocator->alloc_ctx->allocated;
+    size_t aval_mem = allocator->alloc_ctx->size - used_mem;
+
+    char* teststr = allocator->alloc(allocator->alloc_ctx, aval_mem);
+    
+    memset(teststr, 101, aval_mem - 1);
+    test[aval_mem] = '\0';
+
+    allocator->destroy(allocator->alloc_ctx);
+  }
+  
+  return 1;
+}
+
 extern void warena_api_test_runner() {
-  char** test_msgs;
+  char test_success = 1;
 
-  if (!test_alloc_creation()) {
-    test_msgs[0] = "[TEST] Allocator Creation failed \n";
-  }
+  test_success =  test_alloc_creation();
+  test_success =      test_allocation();
+  test_success = test_multi_allocator();
 
-  // This will never happen cause its just
-  // going to segfault if it fails :D
-  // Don't know why im adding it
-  // but I am :D
-  if (!test_allocation()) {
-    test_msgs[1] = "[TEST] Allocation failed \n";
-  }
-
-  for (int i = 0; test_msgs[i] != 0; i++) {
-    fprintf(stderr, "%d - %s - %s",
-            __LINE__, __FILE__, test_msgs[i]);
-  }
+  char* test_msg = (test_success) ? "PASS" : "FAIL";
+  printf("[%s] %s \n", test_msg, __FILE__);
 }
