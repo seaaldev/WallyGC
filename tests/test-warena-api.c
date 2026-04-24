@@ -2,151 +2,196 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <limits.h>
 
 #include "./../src/warena.h"
 #include "./../src/wvm.h"
 #include "./../src/wdebug.h"
 
-static int test_alloc_creation() {
-  return (new_allocator(1) != 0) ? 1 : 0;
+static 
+bool test_alloc_destroy(void) 
+{
+  alloc_t *allocator = new_allocator(1);
+  allocator->destroy(allocator);
+
+  return true;
 }
 
-static int test_null_alloc_creation() {
-  return (new_allocator(0) == 0) ? 1 : 0;
+static 
+bool test_alloc_creation(void) 
+{
+  alloc_t *allocator = new_allocator(1);
+  bool ret = (allocator != 0);
+  allocator->destroy(allocator);
+
+  return ret;
 }
 
-static int test_alloc_destroy() {
-  alloc_t* allocator = new_allocator(1);
+static 
+bool test_null_alloc_creation(void) 
+{
+  alloc_t *allocator = new_allocator(1);
+  bool ret = (allocator != 0);
+  allocator->destroy(allocator);
   
-  return (allocator->destroy(allocator->alloc_ctx) != 0 ? 1 : 0);
+  return ret;
 }
 
-static int test_null_alloc_destroy() {
-  alloc_t* allocator = new_allocator(1);
-
-  return (allocator->destroy(0) == 0 ? 1 : 0);
-}
-
-static int test_allocation() {
-  alloc_t* allocator = new_allocator(4);
+static 
+bool test_allocation(void) 
+{
+  alloc_t *allocator = new_allocator(4);
 
   size_t used_mem = allocator->alloc_ctx->allocated;
   size_t aval_mem = allocator->alloc_ctx->size - used_mem;
   
-  char* teststr = allocator->alloc(allocator->alloc_ctx, aval_mem);
-  memset(teststr, 101, aval_mem - 1);
-  teststr[aval_mem] = '\0';
+  char *teststr = allocator->alloc(allocator, aval_mem);
+  memset(teststr, 101, aval_mem - 2);
+  teststr[aval_mem - 1] = '\0';
   
-  allocator->destroy(allocator->alloc_ctx);
+  allocator->destroy(allocator);
 
-  return 1;
+  return true;
 }
 
-static int test_null_allocation() {
-  alloc_t* allocator = new_allocator(4);
-
-  return (allocator->alloc(allocator->alloc_ctx, 0) == 0 ? 1 : 0);
-}
-
-static int test_multi_allocator() {
+static 
+bool test_many_allocators(void) 
+{
   size_t page_num  = 12;
-  size_t alctr_num =  8;
+  size_t alctr_num = 48;
   
   for (size_t i = 0; i < alctr_num; i++) {
-    alloc_t* allocator = new_allocator(page_num);
+    alloc_t *allocator = new_allocator(page_num);
 
     size_t used_mem = allocator->alloc_ctx->allocated;
     size_t aval_mem = allocator->alloc_ctx->size - used_mem;
 
-    char* teststr = allocator->alloc(allocator->alloc_ctx, aval_mem);
+    char *teststr = allocator->alloc(allocator, aval_mem);
     
-    memset(teststr, 101, aval_mem - 1);
-    teststr[aval_mem] = '\0';
+    memset(teststr, 101, aval_mem - 2);
+    teststr[aval_mem - 1] = '\0';
 
-    allocator->destroy(allocator->alloc_ctx);
+    allocator->destroy(allocator);
   }
+
+  return true;
+}
+
+static 
+bool test_alloc_expand(void) 
+{
+  bool ret = true;
+
+  alloc_t *allocator = new_allocator(1);
+  arena_t *check_ctx  = allocator->alloc_ctx;
+
+  allocator->alloc(allocator, PAGE_SIZE * 3);
+  ret &= (allocator->alloc_ctx != check_ctx);
+  check_ctx = allocator->alloc_ctx; 
+
+  allocator->alloc(allocator, PAGE_SIZE * 6);
+  ret &= (allocator->alloc_ctx != check_ctx);
+  check_ctx = allocator->alloc_ctx; 
+
+  allocator->alloc(allocator, PAGE_SIZE * 12);
+  ret &= (allocator->alloc_ctx != check_ctx);
+  check_ctx = allocator->alloc_ctx; 
+
+  allocator->destroy(allocator);
+
+  return ret;
+}
+
+static 
+bool test_isheap_start(alloc_t *allocator)
+{
+  uintptr_t arena_start = (uintptr_t)allocator->alloc_ctx;
   
-  return 1;
+  bool ret = allocator->is_alloc_ptr(allocator, arena_start);
+
+  return ret;
 }
 
-static int test_isheap_start() {
-  alloc_t* allocator = new_allocator(1);
+static 
+bool test_isheap_middle(alloc_t *allocator) 
+{
+  uintptr_t arena_mid = 
+    (uintptr_t)allocator + 
+    (allocator->alloc_ctx->size / 2);
   
-  int result = allocator->is_heap_ptr(allocator->alloc_ctx,
-                                 (uintptr_t) allocator->alloc_ctx);
+  bool ret = allocator->is_alloc_ptr(allocator, arena_mid);
 
-  allocator->destroy(allocator->alloc_ctx);
-
-  return result;
+  return ret;
 }
 
-static int test_isheap_middle() {
-  alloc_t* allocator = new_allocator(1);
-
-  uintptr_t alloc_mid = (uintptr_t) allocator + 
-                        (allocator->alloc_ctx->size / 2);
+static 
+bool test_isheap_end(alloc_t *allocator) 
+{
+  uintptr_t arena_end = (uintptr_t)allocator->alloc_ctx +
+                        allocator->alloc_ctx->size - 1;
   
-  int result = allocator->is_heap_ptr(allocator->alloc_ctx, alloc_mid);
+  bool ret = allocator->is_alloc_ptr(allocator, arena_end);
 
-  allocator->destroy(allocator->alloc_ctx);
-
-  return result;
-}
-
-static int test_isheap_end() {
-
-  alloc_t* allocator = new_allocator(1);
-
-  uintptr_t alloc_end = (uintptr_t) allocator + allocator->alloc_ctx->size - 1;
-    
-  int result = allocator->is_heap_ptr(allocator->alloc_ctx, alloc_end);
-
-  allocator->destroy(allocator->alloc_ctx);
-
-  return result;
+  return ret;
 }
 
 
-static int test_is_not_heap_high() {
-  alloc_t* allocator = new_allocator(1);
+static 
+bool test_is_not_heap_high(alloc_t *allocator) 
+{
+  uintptr_t high_ptr = UINTPTR_MAX; 
+  
+  bool ret = allocator->is_alloc_ptr(allocator, high_ptr);
 
-  uintptr_t high_ptr = (uintptr_t) allocator->alloc_ctx +
-                      (allocator->alloc_ctx->size + 1);
-
-  int result = !(allocator->is_heap_ptr(allocator->alloc_ctx, high_ptr));
-
-  allocator->destroy(allocator->alloc_ctx);
-
-  return result;
+  return !ret;
 }
 
-static int test_is_not_heap_low() {
-  alloc_t* allocator = new_allocator(1);
+static 
+bool test_is_not_heap_low(alloc_t *allocator)
+{
+  uintptr_t low_ptr = 0;
+  
+  bool ret = allocator->is_alloc_ptr(allocator, low_ptr);
 
-  uintptr_t low_ptr = (uintptr_t) allocator->alloc_ctx - 1;
-
-  int result = !(allocator->is_heap_ptr(allocator->alloc_ctx, low_ptr));
-
-  allocator->destroy(allocator->alloc_ctx);
-
-  return result;
+  return !ret;
 }
 
-extern void warena_api_test_runner() {
+static 
+bool test_multi_arena_is_heap(alloc_t *allocator) 
+{
+  uintptr_t arena1 = (uintptr_t) allocator->alloc(allocator, PAGE_SIZE * 1);
+  uintptr_t arena2 = (uintptr_t) allocator->alloc(allocator, PAGE_SIZE * 3);
+  uintptr_t arena3 = (uintptr_t) allocator->alloc(allocator, PAGE_SIZE * 7);
+  
+  bool a1_isheap = allocator->is_alloc_ptr(allocator, arena1);
+  bool a2_isheap = allocator->is_alloc_ptr(allocator, arena2);
+  bool a3_isheap = allocator->is_alloc_ptr(allocator, arena3);
+
+  return (a1_isheap && a2_isheap && a3_isheap);
+}
+
+int main(void) 
+{
   char test_success = 1;
+  
+  test_success &=       test_alloc_destroy();
+  test_success &=      test_alloc_creation();
+  test_success &= test_null_alloc_creation();
+  test_success &=          test_allocation();
+  test_success &=     test_many_allocators();
+  test_success &=        test_alloc_expand();
+  
+  alloc_t* heap_range = new_allocator(1);
 
-  test_success =      test_alloc_creation();
-  test_success = test_null_alloc_creation();
-  test_success =       test_alloc_destroy();
-  test_success =  test_null_alloc_destroy();
-  test_success =          test_allocation();
-  test_success =     test_null_allocation();
-  test_success =     test_multi_allocator();
-  test_success =        test_isheap_start();
-  test_success =       test_isheap_middle();
-  test_success =          test_isheap_end();
-  test_success =     test_is_not_heap_low();
-  test_success =    test_is_not_heap_high();
+  test_success &=        test_isheap_start(heap_range);
+  test_success &=       test_isheap_middle(heap_range);
+  test_success &=          test_isheap_end(heap_range);
+  test_success &=     test_is_not_heap_low(heap_range);
+  test_success &=    test_is_not_heap_high(heap_range);
+  test_success &= test_multi_arena_is_heap(heap_range);
+
+  heap_range->destroy(heap_range);
 
   char* test_msg = (test_success) ? "PASS" : "FAIL";
   printf("[%s] %s \n", test_msg, __FILE__);
