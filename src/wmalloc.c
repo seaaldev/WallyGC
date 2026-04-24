@@ -24,13 +24,15 @@ static hdr_t* wgc_hdr_new(arena_t* arena, size_t size) {
 
 // static arena_t* _wgc_mstate
 */
-extern void* wgc_malloc(size_t size) {
+extern 
+void *wgc_malloc(size_t size) {
   printf("Allocated a block the size of %ld"
         " congrats!\n", size);
   return 0;
 }
 
-extern void wgc_free(void *ptr) {
+extern 
+void wgc_free(void *ptr) {
   printf("Freed the block at address %p"
          " congrats!\n", ptr);
 
