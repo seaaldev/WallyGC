@@ -166,9 +166,9 @@ bool test_multi_arena_is_heap(alloc_t *allocator)
   
   bool ret = 1;
   
-  ret &= (allocator->is_alloc_ptr(allocator, arena1));
-  ret &= (allocator->is_alloc_ptr(allocator, arena2));
-  ret &= (allocator->is_alloc_ptr(allocator, arena3));
+  ret &= (allocator->is_alloc_ptr(allocator, arena1) != 0);
+  ret &= (allocator->is_alloc_ptr(allocator, arena2) != 0);
+  ret &= (allocator->is_alloc_ptr(allocator, arena3) != 0);
 
   return ret;
 }

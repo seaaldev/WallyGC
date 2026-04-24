@@ -57,7 +57,7 @@ bool test_list_add_tail(void)
   ret &= (third.next == &second &&
     third.prev == &first);
 
-  return (first_correct && second_correct && third_correct);
+  return ret;
 }
 
 bool test_list_del(void)
@@ -152,7 +152,7 @@ bool test_list_move(void)
   ret &= (third.next == &second &&
     third.prev == &first);
 
-  return (first_correct && second_correct && third_correct);
+  return ret;
 }
 
 bool test_list_move_tail(void)
@@ -178,7 +178,7 @@ bool test_list_move_tail(void)
   ret &= (third.next == &first &&
     third.prev == &second);
 
-  return (first_correct && second_correct && third_correct);
+  return ret;
 }
 
 
