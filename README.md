@@ -5,7 +5,7 @@
 Meaning it might be some time before it is completely finished. As I have a few goals I want to accomplish for this project.
 
 ## Goals
-> - [ ] A function conservative garbage collector
+> - [ ] A functioning conservative garbage collector
 > - [ ] Make it multi-platform compatible to both UNIX-systems & Windows
 > - [ ] Implement Thread-Safety
 
