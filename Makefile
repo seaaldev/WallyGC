@@ -23,20 +23,17 @@ wvm.o : folders ./src/wvm.c
 	${CC} ${CFLAGS} -c ./src/wvm.c -o ./build/wvm.o
 
 wmalloc.o : folders ./src/wmalloc.c ./src/warena.h
-	${CC} ${CLAGS} -c ./src/wmalloc.c -o ./build/wmalloc.o
+	${CC} ${CFLAGS} -c ./src/wmalloc.c -o ./build/wmalloc.o
 
 # ----- TEST SECTION ------
 
-tests: tester.o test-warena-api.o wvm.o warena.o wmalloc.o
-	${CC} ${DEBUG_FLAGS} ./build/tests/tester.o 				 \
-											 ./build/tests/test-warena-api.o \
-											 ./build/wvm.o ./build/warena.o -o ./build/tests/tester
+.tests: test-warena-api test-wlist 
 
-tester.o : folders
-	${CC} ${DEBUG_FLAGS} -c ./tests/tester.c -o ./build/tests/tester.o
+test-warena-api : folders ./tests/test-warena-api.c ./src/wvm.c ./src/warena.c
+	${CC} ${CFLAGS} ./src/warena.c ./src/wvm.c ./tests/test-warena-api.c -o ./build/tests/test-warena-api
 
-test-warena-api.o : folders 
-	${CC} ${DEBUG_FLAGS} -c ./tests/test-warena-api.c -o ./build/tests/test-warena-api.o
+test-wlist : folders ./tests/test-wlist.c
+	${CC} ${CFLAGS} ./tests/test-wlist.c -o ./build/tests/test-wlist
 
 folders : 
 	mkdir -p ./build ./build/tests ./lib
