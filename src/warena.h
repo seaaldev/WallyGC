@@ -3,27 +3,38 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
+
+#ifndef WLIST_H
+struct list_head {
+  struct list_head *next;
+  struct list_head *prev;
+};
+#endif
 
 typedef struct wgc_arena_t arena_t;
 
 struct wgc_arena_t {
-  size_t      size;
-  size_t allocated;
+  size_t           size;
+  size_t           allocated;
+  struct list_head head;
 };
 
-typedef struct wgc_allocator_t {
-  arena_t* alloc_ctx;
+typedef struct wgc_allocator_t alloc_t;
 
+struct wgc_allocator_t {
+  /*
+   * Ignore alloc_ctx. It's
+   * only used internally.
+   */
+  arena_t  *alloc_ctx;
 
-  /* Always pass in alloc_ctx as the arena_t parameter */
-  void     (*destroy)(arena_t*);                // unmaps the whole arena
-  void*    (*alloc)(arena_t*, size_t);          // Allocates n(size_t) bytes 
-  void     (*expand)(arena_t*, size_t);         // Creates more mappings n(size_t)
-  int      (*is_heap_ptr)(arena_t*, uintptr_t); // Returns 1 if alloc contains
-                                               // the ptr & 0 if not
+  arena_t* (*is_alloc_ptr)(alloc_t*, uintptr_t); 
+  void     (*destroy)(alloc_t*);                
+  void*    (*alloc)(alloc_t*, size_t);
 
-} alloc_t;
+};
 
-extern alloc_t* new_allocator(size_t ini_pages);
+alloc_t *new_allocator(size_t ini_pages);
 
 #endif
