@@ -164,11 +164,13 @@ bool test_multi_arena_is_heap(alloc_t *allocator)
   uintptr_t arena2 = (uintptr_t) allocator->alloc(allocator, PAGE_SIZE * 3);
   uintptr_t arena3 = (uintptr_t) allocator->alloc(allocator, PAGE_SIZE * 7);
   
-  bool a1_isheap = allocator->is_alloc_ptr(allocator, arena1);
-  bool a2_isheap = allocator->is_alloc_ptr(allocator, arena2);
-  bool a3_isheap = allocator->is_alloc_ptr(allocator, arena3);
+  bool ret = 1;
+  
+  ret &= (allocator->is_alloc_ptr(allocator, arena1));
+  ret &= (allocator->is_alloc_ptr(allocator, arena2));
+  ret &= (allocator->is_alloc_ptr(allocator, arena3));
 
-  return (a1_isheap && a2_isheap && a3_isheap);
+  return ret;
 }
 
 int main(void) 
