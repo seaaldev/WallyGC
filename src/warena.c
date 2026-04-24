@@ -76,13 +76,15 @@ void wgc_destroy_allocator(alloc_t *allocator)
 {
   arena_t *alloc_ctx = allocator->alloc_ctx;
   struct list_head *adv = alloc_ctx->head.prev;
-  arena_t *adv_arena = 0;
+  arena_t *adv_arena = container_of(adv, arena_t, head);
 
   do {
-    adv_arena = container_of(adv, arena_t, head);
     adv = adv->prev;
 
     wgc_arena_destroy(adv_arena);
+
+    adv_arena = container_of(adv, arena_t, head);
+
   } while (adv_arena != alloc_ctx);
 }
 
@@ -127,15 +129,15 @@ arena_t *wgc_is_alloc_ptr(alloc_t *allocator, uintptr_t ptr)
   arena_t *alloc_ctx = allocator->alloc_ctx;
 
   struct list_head *adv = &alloc_ctx->head;
-  arena_t *adv_arena = 0;
+  arena_t *adv_arena = container_of(adv, arena_t, head);
 
   do {
-    adv_arena = container_of(adv, arena_t, head);
-    adv = adv->prev;
-
     if (wgc_arena_contains(adv_arena, ptr))
       return adv_arena;
-
+  
+    adv = adv->next;
+    adv_arena = container_of(adv, arena_t, head);
+    
   } while (adv_arena != alloc_ctx);
 
   return 0;
