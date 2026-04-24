@@ -12,16 +12,16 @@
 #include "wcontainer_of.h"
 
 static 
-arena_t* wgc_arena_new(size_t page_count);
+arena_t *wgc_arena_new(size_t page_count);
 
 static 
-void wgc_arena_destroy(arena_t* arena);
+void wgc_arena_destroy(arena_t *arena);
 
 static 
-void* wgc_arena_alloc(arena_t* arena, size_t bytes);
+void *wgc_arena_alloc(arena_t *arena, size_t bytes);
 
 static 
-bool wgc_arena_contains(arena_t* arena, uintptr_t ptr);
+bool wgc_arena_contains(arena_t *arena, uintptr_t ptr);
 
 
 /*
@@ -31,14 +31,14 @@ bool wgc_arena_contains(arena_t* arena, uintptr_t ptr);
 #define TUNE_ALIGNMENT 8
 
 static 
-arena_t* wgc_arena_new(size_t page_count) 
+arena_t *wgc_arena_new(size_t page_count) 
 {
   if (page_count == 0) {
     return 0;
   }
 
   size_t size = PAGE_SIZE * page_count;
-  arena_t* arena = (arena_t*) wgc_virtual_map(0, size);
+  arena_t *arena = (arena_t *)wgc_virtual_map(0, size);
   
   arena->size      = size;
   arena->allocated = sizeof(*arena) + sizeof(arena->head);
@@ -56,15 +56,15 @@ void wgc_arena_destroy(arena_t *arena)
 }
 
 static 
-void* wgc_arena_alloc(arena_t* arena, size_t bytes) 
+void *wgc_arena_alloc(arena_t *arena, size_t bytes) 
 {
   uintptr_t ret_ptr = (uintptr_t)arena + arena->allocated;
   arena->allocated += bytes;
-  return  (void*) ret_ptr;
+  return (void *)ret_ptr;
 }
 
-static 
-bool wgc_arena_contains(arena_t* arena, uintptr_t ptr)
+static inline
+bool wgc_arena_contains(arena_t *arena, uintptr_t ptr)
 {
   uintptr_t arena_end = (uintptr_t)arena + (arena->size - 1);
 
@@ -72,7 +72,7 @@ bool wgc_arena_contains(arena_t* arena, uintptr_t ptr)
 }
 
 static
-void wgc_destroy_allocator(alloc_t* allocator)
+void wgc_destroy_allocator(alloc_t *allocator)
 {
   arena_t *alloc_ctx = allocator->alloc_ctx;
   struct list_head *adv = alloc_ctx->head.prev;
@@ -149,7 +149,7 @@ alloc_t *new_allocator(size_t ini_pages)
 
   arena_t *arena = wgc_arena_new(ini_pages);
   
-  alloc_t* alloc = wgc_arena_alloc(arena, sizeof(*alloc));
+  alloc_t *alloc = wgc_arena_alloc(arena, sizeof(*alloc));
   
 
   alloc->alloc_ctx    = arena;
